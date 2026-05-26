@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Memory Replay OS</title>
+<title>Memory OS AI Weekly</title>
 
 <style>
 * {
@@ -16,7 +16,7 @@
 body {
   min-height: 100vh;
   background: linear-gradient(135deg, #0f172a, #1e293b, #0b1220);
-  color: #fff;
+  color: white;
   display: flex;
   justify-content: center;
   padding: 20px;
@@ -24,55 +24,85 @@ body {
 
 .app {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1300px;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 320px 1fr 340px;
   gap: 20px;
 }
 
+/* GLASS */
 .glass {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255,255,255,0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 18px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
+/* CALENDAR */
 .sidebar {
+  padding: 16px;
+}
+
+.logo {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+button {
+  background: rgba(99,102,241,0.7);
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: rgba(99,102,241,0.9);
+}
+
+.weekdays, .days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day {
+  text-align: center;
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  background: rgba(255,255,255,0.06);
+}
+
+.day.active {
+  background: rgba(99,102,241,0.7);
+}
+
+/* MAIN */
+.main {
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.logo {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.nav-btn {
-  padding: 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.main {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
 .header {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
 }
 
 .card {
-  padding: 16px;
+  padding: 14px;
   border-radius: 16px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.1);
@@ -80,8 +110,8 @@ body {
 
 textarea {
   width: 100%;
-  margin-top: 10px;
-  padding: 12px;
+  margin-top: 8px;
+  padding: 10px;
   border-radius: 12px;
   border: none;
   outline: none;
@@ -90,40 +120,34 @@ textarea {
   resize: none;
 }
 
-button {
-  margin-top: 10px;
-  padding: 10px 14px;
+.save {
+  padding: 10px;
   border-radius: 12px;
-  border: none;
-  cursor: pointer;
   background: rgba(99,102,241,0.7);
   color: white;
   font-weight: 600;
+  border: none;
 }
 
-button:hover {
-  background: rgba(99,102,241,0.9);
+/* AI PANEL */
+.ai {
+  padding: 16px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.summary-box {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  min-height: 200px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .app {
     grid-template-columns: 1fr;
-  }
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  .sidebar {
-    flex-direction: row;
-    overflow-x: auto;
-  }
-  .nav-btn {
-    white-space: nowrap;
   }
 }
 </style>
@@ -133,50 +157,56 @@ button:hover {
 
 <div class="app">
 
-  <!-- SIDEBAR -->
+  <!-- CALENDAR -->
   <div class="sidebar glass">
-    <div class="logo">📼 Memory OS</div>
-    <div class="nav-btn">📅 Today Log</div>
-    <div class="nav-btn">🧠 Reflection</div>
-    <div class="nav-btn">🌱 Alternate Timeline</div>
-    <div class="nav-btn">📊 Insights</div>
+    <div class="logo">📅 Memory OS</div>
+
+    <div class="calendar-header">
+      <button onclick="changeMonth(-1)">⬅</button>
+      <div id="monthTitle"></div>
+      <button onclick="changeMonth(1)">➡</button>
+    </div>
+
+    <div class="weekdays">
+      <div>Su</div><div>Mo</div><div>Tu</div>
+      <div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+    </div>
+
+    <div class="days" id="calendar"></div>
   </div>
 
   <!-- MAIN -->
   <div class="main glass">
 
-    <div class="header">Your Life Replay System</div>
+    <div class="header">Your Memory Timeline</div>
 
-    <!-- TODAY -->
     <div class="card">
-      <h3>📅 Today Log</h3>
-      <textarea id="today" rows="4" placeholder="What happened today..."></textarea>
-      <button onclick="save('today')">Save Entry</button>
-    </div>
-
-    <div class="grid">
-
-      <!-- REFLECTION -->
-      <div class="card">
-        <h3>🧠 Reflection</h3>
-        <textarea id="reflection" rows="6" placeholder="What went well? What didn’t?"></textarea>
-        <button onclick="save('reflection')">Save Reflection</button>
-      </div>
-
-      <!-- ALT TIMELINE -->
-      <div class="card">
-        <h3>🌱 Alternate Timeline</h3>
-        <textarea id="alt" rows="6" placeholder="What if you did something differently?"></textarea>
-        <button onclick="save('alt')">Save Timeline</button>
-      </div>
-
+      <h3>📅 Daily Log</h3>
+      <textarea id="today" rows="3"></textarea>
     </div>
 
     <div class="card">
-      <h3>📊 Weekly Insight</h3>
-      <p style="opacity:0.8; margin-top:10px;">
-        Your saved data stays in your browser now 💾
-      </p>
+      <h3>🧠 Reflection</h3>
+      <textarea id="reflection" rows="4"></textarea>
+    </div>
+
+    <div class="card">
+      <h3>🌱 Alternate Timeline</h3>
+      <textarea id="alt" rows="4"></textarea>
+    </div>
+
+    <button class="save" onclick="saveDay()">💾 Save Day</button>
+
+  </div>
+
+  <!-- AI SUMMARY -->
+  <div class="ai glass">
+
+    <h3>🧠 Weekly AI Summary</h3>
+    <button onclick="generateWeeklySummary()">Generate</button>
+
+    <div class="summary-box" id="summaryBox">
+      Click generate to analyze your week...
     </div>
 
   </div>
@@ -184,26 +214,143 @@ button:hover {
 </div>
 
 <script>
-// ===== SAVE FUNCTION =====
-function save(key) {
-  const value = document.getElementById(key).value;
-  localStorage.setItem("memoryOS_" + key, value);
+
+let current = new Date();
+let selected = formatDate(new Date());
+
+function formatDate(d){
+  return d.toISOString().split("T")[0];
 }
 
-// ===== LOAD FUNCTION =====
-function load() {
-  const fields = ["today", "reflection", "alt"];
+function key(date, field){
+  return `memoryOS_${date}_${field}`;
+}
 
-  fields.forEach(id => {
-    const saved = localStorage.getItem("memoryOS_" + id);
-    if (saved) {
-      document.getElementById(id).value = saved;
-    }
+/* ---------- LOAD DAY ---------- */
+function loadDay(date){
+  selected = date;
+
+  ["today","reflection","alt"].forEach(id=>{
+    document.getElementById(id).value =
+      localStorage.getItem(key(date,id)) || "";
   });
+
+  renderCalendar();
 }
 
-// auto load on start
-window.onload = load;
+/* ---------- SAVE ---------- */
+function saveDay(){
+  ["today","reflection","alt"].forEach(id=>{
+    localStorage.setItem(key(selected,id),
+      document.getElementById(id).value);
+  });
+
+  alert("Saved " + selected);
+}
+
+/* ---------- CALENDAR ---------- */
+function changeMonth(dir){
+  current.setMonth(current.getMonth()+dir);
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const y = current.getFullYear();
+  const m = current.getMonth();
+
+  const first = new Date(y,m,1);
+  const last = new Date(y,m+1,0);
+
+  document.getElementById("monthTitle").innerText =
+    current.toLocaleString('default',{month:'long',year:'numeric'});
+
+  const box = document.getElementById("calendar");
+  box.innerHTML = "";
+
+  for(let i=0;i<first.getDay();i++){
+    box.appendChild(document.createElement("div"));
+  }
+
+  for(let d=1; d<=last.getDate(); d++){
+    const date = new Date(y,m,d);
+    const dateStr = formatDate(date);
+
+    const div = document.createElement("div");
+    div.className = "day";
+    div.innerText = d;
+
+    if(dateStr === selected) div.classList.add("active");
+
+    div.onclick = ()=>loadDay(dateStr);
+    box.appendChild(div);
+  }
+}
+
+/* ---------- WEEKLY AI SUMMARY ---------- */
+function generateWeeklySummary(){
+
+  const now = new Date();
+  let logs = [];
+
+  // last 7 days
+  for(let i=0;i<7;i++){
+    const d = new Date();
+    d.setDate(now.getDate()-i);
+    const date = formatDate(d);
+
+    const text = localStorage.getItem(key(date,"today")) || "";
+    const ref = localStorage.getItem(key(date,"reflection")) || "";
+
+    if(text || ref){
+      logs.push(text + " " + ref);
+    }
+  }
+
+  if(logs.length === 0){
+    document.getElementById("summaryBox").innerHTML =
+      "No data found for this week yet 😶";
+    return;
+  }
+
+  let allText = logs.join(" ").toLowerCase();
+
+  // simple “AI-like” detection
+  const moodGood = ["good","great","happy","productive","success","nice"];
+  const moodBad = ["bad","sad","tired","lazy","stress","angry","fail"];
+
+  let good = moodGood.filter(w=>allText.includes(w)).length;
+  let bad = moodBad.filter(w=>allText.includes(w)).length;
+
+  let insight = "";
+
+  if(good > bad){
+    insight += "📈 Overall mood: Positive week<br>";
+  } else if(bad > good){
+    insight += "📉 Overall mood: Rough week<br>";
+  } else {
+    insight += "⚖️ Mood: Balanced week<br>";
+  }
+
+  // keyword detection
+  let study = allText.includes("study") ? "📚 Study appeared often<br>" : "";
+  let sleep = allText.includes("sleep") ? "😴 Sleep patterns noted<br>" : "";
+  let stress = allText.includes("stress") ? "⚠️ Stress signals detected<br>" : "";
+
+  let summary =
+    "🧠 Weekly Analysis:<br><br>" +
+    insight +
+    study +
+    sleep +
+    stress +
+    "<br>✨ Insight: Your patterns are being tracked and analyzed from your logs.";
+
+  document.getElementById("summaryBox").innerHTML = summary;
+}
+
+/* ---------- INIT ---------- */
+renderCalendar();
+loadDay(selected);
+
 </script>
 
 </body>
