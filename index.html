@@ -1,204 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Memory OS</title>
+
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui;
 }
 
-body {
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 10% 10%, #1e293b 0%, transparent 40%),
-    radial-gradient(circle at 90% 20%, #312e81 0%, transparent 45%),
-    radial-gradient(circle at 50% 100%, #0f172a 0%, #020617 60%);
-  color: white;
-  display: flex;
-  justify-content: center;
-  padding: 20px;
+body{
+  min-height:100vh;
+  background: radial-gradient(circle at top, #1e293b, #0f172a, #020617);
+  color:white;
+  display:flex;
+  justify-content:center;
+  padding:15px;
 }
 
-/* ===== LAYERED GLASS ===== */
-.glass {
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.10),
-    rgba(255,255,255,0.05)
-  );
-
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-
-  border: 1px solid rgba(255,255,255,0.14);
-  border-top: 1px solid rgba(255,255,255,0.25);
-
-  border-radius: 22px;
-
-  box-shadow:
-    0 20px 50px rgba(0,0,0,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.08);
-
-  transition: 0.25s ease;
+/* LAYOUT */
+.app{
+  width:100%;
+  max-width:1200px;
+  display:grid;
+  grid-template-columns:280px 1fr 300px;
+  gap:15px;
 }
 
-/* hover lift effect */
-.glass:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 25px 60px rgba(0,0,0,0.55),
-    inset 0 1px 0 rgba(255,255,255,0.12);
+/* GLASS (FIXED - visible now) */
+.glass{
+  background: rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:16px;
+  padding:12px;
 }
 
-/* ===== LAYOUT ===== */
-.app {
-  width: 100%;
-  max-width: 1300px;
-  display: grid;
-  grid-template-columns: 320px 1fr 340px;
-  gap: 18px;
+/* LEFT */
+.sidebar{
+  height:fit-content;
 }
 
-/* ===== SIDEBAR ===== */
-.sidebar {
-  padding: 18px;
+.logo{
+  font-weight:800;
+  margin-bottom:10px;
 }
 
-.logo {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+/* CALENDAR */
+.calendar-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:10px 0;
 }
 
-/* ===== CALENDAR ===== */
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  margin: 14px 0;
+button{
+  background:#6366f1;
+  border:none;
+  color:white;
+  padding:6px 10px;
+  border-radius:10px;
+  cursor:pointer;
 }
 
-button {
-  background: rgba(99,102,241,0.75);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: white;
-  padding: 7px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: 0.2s;
+.weekdays,.days{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:4px;
 }
 
-button:hover {
-  background: rgba(99,102,241,0.95);
-  transform: scale(1.05);
+.day{
+  text-align:center;
+  padding:6px;
+  border-radius:8px;
+  background:rgba(255,255,255,0.05);
+  cursor:pointer;
+  font-size:12px;
 }
 
-.weekdays, .days {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+.day.active{
+  background:#6366f1;
 }
 
-.day {
-  text-align: center;
-  padding: 9px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 12px;
-
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-
-  transition: 0.2s;
+/* CENTER */
+.main{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
 }
 
-.day:hover {
-  background: rgba(255,255,255,0.12);
-  transform: scale(1.05);
+.card{
+  background:rgba(255,255,255,0.05);
+  padding:10px;
+  border-radius:12px;
 }
 
-.day.active {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  box-shadow: 0 0 18px rgba(99,102,241,0.4);
+textarea{
+  width:100%;
+  margin-top:5px;
+  padding:8px;
+  border:none;
+  border-radius:8px;
+  background:rgba(0,0,0,0.3);
+  color:white;
+  resize:none;
 }
 
-/* ===== MAIN PANEL ===== */
-.main {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+.save{
+  padding:10px;
 }
 
-.header {
-  font-size: 22px;
-  font-weight: 900;
+/* RIGHT */
+.ai input{
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:none;
+  background:rgba(0,0,0,0.3);
+  color:white;
 }
 
-.date {
-  opacity: 0.75;
+.result{
+  max-height:300px;
+  overflow:auto;
+  font-size:12px;
 }
 
-/* ===== CARDS ===== */
-.card {
-  padding: 16px;
-  border-radius: 18px;
-
-  background: linear-gradient(
-    135deg,
-    rgba(255,255,255,0.08),
-    rgba(255,255,255,0.04)
-  );
-
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-
-  transition: 0.2s;
+.item{
+  padding:8px;
+  background:rgba(255,255,255,0.05);
+  margin-bottom:5px;
+  border-radius:8px;
+  cursor:pointer;
 }
 
-.card:hover {
-  transform: translateY(-2px);
-}
-
-/* ===== TEXTAREA ===== */
-textarea {
-  width: 100%;
-  margin-top: 10px;
-  padding: 12px;
-
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.12);
-
-  outline: none;
-
-  background: rgba(0,0,0,0.25);
-  color: white;
-
-  resize: none;
-
-  box-shadow: inset 0 0 12px rgba(0,0,0,0.4);
-}
-
-/* ===== AI PANEL ===== */
-.ai {
-  padding: 16px;
-}
-
-.summary-box {
-  margin-top: 10px;
-  padding: 12px;
-  border-radius: 16px;
-
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-
-  min-height: 220px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1100px) {
-  .app {
-    grid-template-columns: 1fr;
+/* MOBILE */
+@media(max-width:1000px){
+  .app{
+    grid-template-columns:1fr;
   }
 }
-  </style>
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- LEFT -->
+<div class="sidebar glass">
+  <div class="logo">📅 Memory OS</div>
+
+  <div class="calendar-header">
+    <button onclick="changeMonth(-1)">⬅</button>
+    <div id="monthTitle"></div>
+    <button onclick="changeMonth(1)">➡</button>
+  </div>
+
+  <div class="weekdays">
+    <div>Su</div><div>Mo</div><div>Tu</div>
+    <div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+  </div>
+
+  <div class="days" id="cal"></div>
+</div>
+
+<!-- CENTER -->
+<div class="main glass">
+
+  <h3 id="dateLabel">Today</h3>
+
+  <div class="card">
+    📅 Log
+    <textarea id="log"></textarea>
+  </div>
+
+  <div class="card">
+    🧠 Reflection
+    <textarea id="ref"></textarea>
+  </div>
+
+  <div class="card">
+    🌱 Alternate Timeline
+    <textarea id="alt"></textarea>
+  </div>
+
+  <button class="save" onclick="save()">💾 Save</button>
+
+</div>
+
+<!-- RIGHT -->
+<div class="ai glass">
+
+  <input id="search" placeholder="Search memories..." oninput="search()"/>
+
+  <div class="result" id="results"></div>
+
+  <hr style="margin:10px 0;opacity:0.3">
+
+  <button onclick="weekly()">🧠 Weekly Summary</button>
+  <div id="summary" style="margin-top:10px;font-size:12px;"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let current = new Date();
+let selected = today();
+
+function today(){
+  return new Date().toISOString().split("T")[0];
+}
+
+function key(d,f){
+  return `mem_${d}_${f}`;
+}
+
+/* LOAD */
+function load(d){
+  selected=d;
+  document.getElementById("dateLabel").innerText=d;
+
+  ["log","ref","alt"].forEach(i=>{
+    document.getElementById(i).value =
+    localStorage.getItem(key(d,i))||"";
+  });
+
+  render();
+}
+
+/* SAVE */
+function save(){
+  ["log","ref","alt"].forEach(i=>{
+    localStorage.setItem(key(selected,i),
+    document.getElementById(i).value);
+  });
+  alert("Saved!");
+}
+
+/* CALENDAR */
+function changeMonth(x){
+  current.setMonth(current.getMonth()+x);
+  render();
+}
+
+function render(){
+  let y=current.getFullYear();
+  let m=current.getMonth();
+
+  document.getElementById("monthTitle").innerText=
+  current.toLocaleString('default',{month:'long',year:'numeric'});
+
+  let first=new Date(y,m,1).getDay();
+  let last=new Date(y,m+1,0).getDate();
+
+  let c=document.getElementById("cal");
+  c.innerHTML="";
+
+  for(let i=0;i<first;i++)c.innerHTML+="<div></div>";
+
+  for(let i=1;i<=last;i++){
+    let d=`${y}-${String(m+1).padStart(2,"0")}-${String(i).padStart(2,"0")}`;
+
+    let div=document.createElement("div");
+    div.className="day";
+    div.innerText=i;
+
+    if(d===selected)div.classList.add("active");
+
+    div.onclick=()=>load(d);
+    c.appendChild(div);
+  }
+}
+
+/* SEARCH */
+function search(){
+  let q=document.getElementById("search").value.toLowerCase();
+  let r=document.getElementById("results");
+  r.innerHTML="";
+
+  if(!q)return;
+
+  for(let i=0;i<localStorage.length;i++){
+    let k=localStorage.key(i);
+    if(!k.startsWith("mem_"))continue;
+
+    let v=localStorage.getItem(k);
+    if(v && v.toLowerCase().includes(q)){
+      let d=k.split("_")[1];
+
+      let div=document.createElement("div");
+      div.className="item";
+      div.innerText=d+" → "+v.slice(0,40);
+
+      div.onclick=()=>load(d);
+      r.appendChild(div);
+    }
+  }
+}
+
+/* WEEKLY SUMMARY */
+function weekly(){
+  let now=new Date();
+  let text="";
+
+  for(let i=0;i<7;i++){
+    let d=new Date();
+    d.setDate(now.getDate()-i);
+    let ds=d.toISOString().split("T")[0];
+
+    let v=localStorage.getItem(key(ds,"log"))||"";
+    text+=v+" ";
+  }
+
+  let mood=text.toLowerCase();
+
+  let good=(mood.match(/good|great|happy|nice/g)||[]).length;
+  let bad=(mood.match(/bad|sad|tired|stress/g)||[]).length;
+
+  let out="";
+
+  if(good>bad)out="📈 Positive week";
+  else if(bad>good)out="📉 Rough week";
+  else out="⚖️ Balanced week";
+
+  document.getElementById("summary").innerText=out;
+}
+
+/* INIT */
+render();
+load(selected);
+
+</script>
+
+</body>
+  </html>
