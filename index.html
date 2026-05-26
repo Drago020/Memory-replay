@@ -22,7 +22,6 @@ body{
   padding:15px;
 }
 
-/* LAYOUT */
 .app{
   width:100%;
   max-width:1200px;
@@ -31,7 +30,6 @@ body{
   gap:15px;
 }
 
-/* GLASS (FIXED - visible now) */
 .glass{
   background: rgba(255,255,255,0.08);
   border:1px solid rgba(255,255,255,0.15);
@@ -39,17 +37,9 @@ body{
   padding:12px;
 }
 
-/* LEFT */
-.sidebar{
-  height:fit-content;
-}
+.sidebar{height:fit-content;}
+.logo{font-weight:800;margin-bottom:10px;}
 
-.logo{
-  font-weight:800;
-  margin-bottom:10px;
-}
-
-/* CALENDAR */
 .calendar-header{
   display:flex;
   justify-content:space-between;
@@ -81,11 +71,8 @@ button{
   font-size:12px;
 }
 
-.day.active{
-  background:#6366f1;
-}
+.day.active{background:#6366f1;}
 
-/* CENTER */
 .main{
   display:flex;
   flex-direction:column;
@@ -109,11 +96,6 @@ textarea{
   resize:none;
 }
 
-.save{
-  padding:10px;
-}
-
-/* RIGHT */
 .ai input{
   width:100%;
   padding:8px;
@@ -138,11 +120,8 @@ textarea{
   cursor:pointer;
 }
 
-/* MOBILE */
 @media(max-width:1000px){
-  .app{
-    grid-template-columns:1fr;
-  }
+  .app{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -153,7 +132,10 @@ textarea{
 
 <!-- LEFT -->
 <div class="sidebar glass">
-  <div class="logo">📅 Memory OS</div>
+  <div class="logo">📅 Memory OS Cloud</div>
+
+  <button onclick="login()">🔐 Login Google</button>
+  <p id="user"></p>
 
   <div class="calendar-header">
     <button onclick="changeMonth(-1)">⬅</button>
@@ -189,7 +171,7 @@ textarea{
     <textarea id="alt"></textarea>
   </div>
 
-  <button class="save" onclick="save()">💾 Save</button>
+  <button onclick="save()">💾 Save to Cloud</button>
 
 </div>
 
@@ -200,62 +182,119 @@ textarea{
 
   <div class="result" id="results"></div>
 
-  <hr style="margin:10px 0;opacity:0.3">
-
-  <button onclick="weekly()">🧠 Weekly Summary</button>
-  <div id="summary" style="margin-top:10px;font-size:12px;"></div>
-
 </div>
 
 </div>
 
-<script>
+<!-- FIREBASE -->
+<script type="module">
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔥 YOUR FIREBASE CONFIG */
+const firebaseConfig = {
+  apiKey: "AIzaSyCCmfnH0P5E7_flM7adLP5RYv9gsA39Js8",
+  authDomain: "memory-replay.firebaseapp.com",
+  projectId: "memory-replay",
+  storageBucket: "memory-replay.firebasestorage.app",
+  messagingSenderId: "848253431557",
+  appId: "1:848253431557:web:f4860fa15fa6fb9168916c",
+  measurementId: "G-LET9G5W3KS"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let user = null;
 let current = new Date();
 let selected = today();
 
+/* DATE */
 function today(){
   return new Date().toISOString().split("T")[0];
 }
 
-function key(d,f){
-  return `mem_${d}_${f}`;
-}
+/* LOGIN */
+window.login = async () => {
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  user = result.user;
+  document.getElementById("user").innerText = user.email;
+};
 
-/* LOAD */
-function load(d){
-  selected=d;
-  document.getElementById("dateLabel").innerText=d;
+onAuthStateChanged(auth,(u)=>{
+  user = u;
+  if(u){
+    document.getElementById("user").innerText = u.email;
+  }
+});
 
-  ["log","ref","alt"].forEach(i=>{
-    document.getElementById(i).value =
-    localStorage.getItem(key(d,i))||"";
+/* SAVE CLOUD */
+window.save = async () => {
+  if(!user) return alert("Login first");
+
+  await setDoc(doc(db,"memories",user.uid+"_"+selected),{
+    log: document.getElementById("log").value,
+    ref: document.getElementById("ref").value,
+    alt: document.getElementById("alt").value
   });
 
-  render();
-}
+  alert("Saved ☁️");
+};
 
-/* SAVE */
-function save(){
-  ["log","ref","alt"].forEach(i=>{
-    localStorage.setItem(key(selected,i),
-    document.getElementById(i).value);
-  });
-  alert("Saved!");
-}
+/* LOAD CLOUD */
+window.load = async (d) => {
+  selected = d;
+  document.getElementById("dateLabel").innerText = d;
 
-/* CALENDAR */
+  if(!user) return;
+
+  const snap = await getDoc(doc(db,"memories",user.uid+"_"+d));
+
+  if(snap.exists()){
+    const data = snap.data();
+    document.getElementById("log").value = data.log || "";
+    document.getElementById("ref").value = data.ref || "";
+    document.getElementById("alt").value = data.alt || "";
+  } else {
+    document.getElementById("log").value = "";
+    document.getElementById("ref").value = "";
+    document.getElementById("alt").value = "";
+  }
+};
+
+</script>
+
+<script>
+
+/* SIMPLE CALENDAR */
+let currentDate = new Date();
+
 function changeMonth(x){
-  current.setMonth(current.getMonth()+x);
+  currentDate.setMonth(currentDate.getMonth()+x);
   render();
 }
 
 function render(){
-  let y=current.getFullYear();
-  let m=current.getMonth();
+  let y=currentDate.getFullYear();
+  let m=currentDate.getMonth();
 
-  document.getElementById("monthTitle").innerText=
-  current.toLocaleString('default',{month:'long',year:'numeric'});
+  document.getElementById("monthTitle").innerText =
+  currentDate.toLocaleString('default',{month:'long',year:'numeric'});
 
   let first=new Date(y,m,1).getDay();
   let last=new Date(y,m+1,0).getDate();
@@ -263,7 +302,7 @@ function render(){
   let c=document.getElementById("cal");
   c.innerHTML="";
 
-  for(let i=0;i<first;i++)c.innerHTML+="<div></div>";
+  for(let i=0;i<first;i++) c.innerHTML+="<div></div>";
 
   for(let i=1;i<=last;i++){
     let d=`${y}-${String(m+1).padStart(2,"0")}-${String(i).padStart(2,"0")}`;
@@ -272,72 +311,15 @@ function render(){
     div.className="day";
     div.innerText=i;
 
-    if(d===selected)div.classList.add("active");
+    div.onclick=()=>window.load(d);
 
-    div.onclick=()=>load(d);
     c.appendChild(div);
   }
 }
 
-/* SEARCH */
-function search(){
-  let q=document.getElementById("search").value.toLowerCase();
-  let r=document.getElementById("results");
-  r.innerHTML="";
-
-  if(!q)return;
-
-  for(let i=0;i<localStorage.length;i++){
-    let k=localStorage.key(i);
-    if(!k.startsWith("mem_"))continue;
-
-    let v=localStorage.getItem(k);
-    if(v && v.toLowerCase().includes(q)){
-      let d=k.split("_")[1];
-
-      let div=document.createElement("div");
-      div.className="item";
-      div.innerText=d+" → "+v.slice(0,40);
-
-      div.onclick=()=>load(d);
-      r.appendChild(div);
-    }
-  }
-}
-
-/* WEEKLY SUMMARY */
-function weekly(){
-  let now=new Date();
-  let text="";
-
-  for(let i=0;i<7;i++){
-    let d=new Date();
-    d.setDate(now.getDate()-i);
-    let ds=d.toISOString().split("T")[0];
-
-    let v=localStorage.getItem(key(ds,"log"))||"";
-    text+=v+" ";
-  }
-
-  let mood=text.toLowerCase();
-
-  let good=(mood.match(/good|great|happy|nice/g)||[]).length;
-  let bad=(mood.match(/bad|sad|tired|stress/g)||[]).length;
-
-  let out="";
-
-  if(good>bad)out="📈 Positive week";
-  else if(bad>good)out="📉 Rough week";
-  else out="⚖️ Balanced week";
-
-  document.getElementById("summary").innerText=out;
-}
-
-/* INIT */
 render();
-load(selected);
 
 </script>
 
 </body>
-  </html>
+</html>
