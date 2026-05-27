@@ -180,12 +180,16 @@ textarea{
 <!-- RIGHT -->
 <div class="ai glass">
 
-  <input id="search" placeholder="Search memories..." oninput="search()"/>
+  <input
+    id="userSearch"
+    placeholder="🔍 Search users..."
+    oninput="searchUsers()"
+  />
 
-  <div class="result" id="results"></div>
+  <div class="result" id="userResults"></div>
 
 </div>
-
+  
 </div>
 
 <!-- FIREBASE -->
@@ -319,6 +323,83 @@ window.load = async (d) => {
   }
 };
 
+  /* 🔍 USER SEARCH */
+ window.searchUsers = async () => {
+
+  const q =
+  document.getElementById("userSearch")
+  .value
+  .toLowerCase();
+
+  const box =
+  document.getElementById("userResults");
+
+  box.innerHTML = "";
+
+  if(!q) return;
+
+  const snap =
+  await getDocs(collection(db, "users"));
+
+  snap.forEach((docSnap)=>{
+
+    const data = docSnap.data();
+
+    const name =
+    (data.name || "").toLowerCase();
+
+    const email =
+    (data.email || "").toLowerCase();
+
+    if(
+      name.includes(q) ||
+      email.includes(q)
+    ){
+
+      const div =
+      document.createElement("div");
+
+      div.className = "item";
+
+      div.innerHTML = `
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:10px;
+        ">
+
+          <img
+            src="${data.photoURL}"
+            style="
+              width:35px;
+              height:35px;
+              border-radius:50%;
+            "
+          />
+
+          <div>
+            <div style="font-weight:600;">
+              ${data.name}
+            </div>
+
+            <div style="
+              font-size:11px;
+              opacity:0.7;
+            ">
+              ${data.email}
+            </div>
+          </div>
+
+        </div>
+      `;
+
+      box.appendChild(div);
+    }
+
+  });
+
+}; 
+  
 </script>
 
 <script>
