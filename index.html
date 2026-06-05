@@ -1,446 +1,298 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Memory OS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentFlow AI</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:system-ui;
+:root{
+  --bg:#F5F5F5;
+  --card:#FFFFFF;
+  --text:#1C1C1C;
+  --muted:#5F5F5F;
+  --accent:#6B6B6B;
+  --border:#E0E0E0;
+  --radius:18px;
 }
+
+body.dark{
+  --bg:#121212;
+  --card:#1E1E1E;
+  --text:#F1F1F1;
+  --muted:#A0A0A0;
+  --accent:#8A8A8A;
+  --border:#2A2A2A;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter;}
 
 body{
-  min-height:100vh;
-  background: radial-gradient(circle at top, #1e293b, #0f172a, #020617);
-  color:white;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
   display:flex;
-  justify-content:center;
-  padding:15px;
+  flex-direction:column;
 }
 
-.app{
-  width:100%;
-  max-width:1200px;
-  display:grid;
-  grid-template-columns:280px 1fr 300px;
-  gap:15px;
-}
-
-.glass{
-  background: rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.15);
-  border-radius:16px;
-  padding:12px;
-}
-
-.sidebar{height:fit-content;}
-.logo{font-weight:800;margin-bottom:10px;}
-
-.calendar-header{
+header{
+  padding:14px;
   display:flex;
   justify-content:space-between;
-  align-items:center;
-  margin:10px 0;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
 }
 
 button{
-  background:#6366f1;
+  padding:10px 12px;
   border:none;
+  border-radius:12px;
+  background:var(--accent);
   color:white;
-  padding:6px 10px;
-  border-radius:10px;
   cursor:pointer;
 }
 
-.weekdays,.days{
+.container{
   display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:4px;
+  grid-template-columns:260px 1fr;
+  height:100vh;
 }
 
-.day{
-  text-align:center;
-  padding:6px;
-  border-radius:8px;
-  background:rgba(255,255,255,0.05);
-  cursor:pointer;
-  font-size:12px;
+.sidebar{
+  background:var(--card);
+  padding:12px;
+  border-right:1px solid var(--border);
 }
 
-.day.active{background:#6366f1;}
-
-.main{
+.chat{
   display:flex;
   flex-direction:column;
-  gap:10px;
 }
 
-.card{
-  background:rgba(255,255,255,0.05);
-  padding:10px;
+.messages{
+  flex:1;
+  padding:14px;
+  overflow-y:auto;
+}
+
+.msg{
+  max-width:75%;
+  padding:10px 12px;
   border-radius:12px;
-}
-
-textarea{
-  width:100%;
-  margin-top:5px;
-  padding:8px;
-  border:none;
-  border-radius:8px;
-  background:rgba(0,0,0,0.3);
-  color:white;
-  resize:none;
-}
-
-.ai input{
-  width:100%;
-  padding:8px;
   margin-bottom:10px;
-  border-radius:8px;
-  border:none;
-  background:rgba(0,0,0,0.3);
-  color:white;
+  white-space:pre-wrap;
 }
 
-.result{
-  max-height:300px;
-  overflow:auto;
-  font-size:12px;
+.user{background:#E6E6E6;margin-left:auto;}
+body.dark .user{background:#2C2C2C;}
+
+.ai{background:#F3F3F3;}
+body.dark .ai{background:#262626;}
+
+.input-area{
+  display:flex;
+  padding:12px;
+  border-top:1px solid var(--border);
 }
 
-.item{
-  padding:8px;
-  background:rgba(255,255,255,0.05);
-  margin-bottom:5px;
-  border-radius:8px;
-  cursor:pointer;
+input{
+  flex:1;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
 }
 
-@media(max-width:1000px){
-  .app{grid-template-columns:1fr;}
+.modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  background:rgba(0,0,0,0.4);
+}
+
+.modal-content{
+  background:var(--card);
+  padding:18px;
+  border-radius:16px;
+  width:320px;
+}
+
+@media(max-width:900px){
+  .container{grid-template-columns:1fr;}
 }
 </style>
 </head>
 
 <body>
 
-<div class="app">
-
-<!-- LEFT -->
-<div class="sidebar glass">
-  <div class="logo">📅 Memory OS Cloud</div>
-
-  <!-- PROFILE -->
-  <div id="profile" style="margin-bottom:10px;"></div>
-
-  <button onclick="login()">🔐 Login Google</button>
-
-  <div class="calendar-header">
-    <button onclick="changeMonth(-1)">⬅</button>
-    <div id="monthTitle"></div>
-    <button onclick="changeMonth(1)">➡</button>
+<header>
+  <div>AgentFlow AI ⚡</div>
+  <div>
+    <button onclick="toggleDark()">🌙</button>
+    <button onclick="openSettings()">⚙️</button>
   </div>
+</header>
 
-  <div class="weekdays">
-    <div>Su</div><div>Mo</div><div>Tu</div>
-    <div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
-  </div>
+<div class="container">
 
-  <div class="days" id="cal"></div>
+<div class="sidebar">
+  <h3>AI Agents</h3>
 </div>
 
-<!-- CENTER -->
-<div class="main glass">
+<div class="chat">
 
-  <h3 id="dateLabel">Today</h3>
+<div class="messages" id="messages"></div>
 
-  <div class="card">
-    📅 Log
-    <textarea id="log"></textarea>
-  </div>
-
-  <div class="card">
-    🧠 Reflection
-    <textarea id="ref"></textarea>
-  </div>
-
-  <div class="card">
-    🌱 Alternate Timeline
-    <textarea id="alt"></textarea>
-  </div>
-
-  <button onclick="save()">💾 Save to Cloud</button>
+<div class="input-area">
+  <input id="input" placeholder="Ask something...">
+  <button onclick="send()">Send</button>
+</div>
 
 </div>
 
-<!-- RIGHT -->
-<div class="ai glass">
-
-  <input
-    id="userSearch"
-    placeholder="🔍 Search users..."
-    oninput="searchUsers()"
-  />
-
-  <div class="result" id="userResults"></div>
-
-</div>
-  
 </div>
 
-<!-- FIREBASE -->
-<script type="module">
+<!-- SETTINGS -->
+<div class="modal" id="modal">
+<div class="modal-content">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-  getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<h3>Settings</h3>
+<br>
 
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-  
-/* FIREBASE CONFIG */
-const firebaseConfig = {
-  apiKey: "AIzaSyCCmfnH0P5E7_flM7adLP5RYv9gsA39Js8",
-  authDomain: "memory-replay.firebaseapp.com",
-  projectId: "memory-replay",
-  storageBucket: "memory-replay.firebasestorage.app",
-  messagingSenderId: "848253431557",
-  appId: "1:848253431557:web:f4860fa15fa6fb9168916c",
-  measurementId: "G-LET9G5W3KS"
-};
+<label>OpenRouter API Key</label>
+<input id="apiKey" style="width:100%;margin-top:6px;margin-bottom:10px;">
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+<label>Model</label>
+<select id="model" style="width:100%;margin-bottom:10px;">
+  <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+  <option value="anthropic/claude-3.5-sonnet">Claude 3.5</option>
+  <option value="google/gemini-flash-1.5">Gemini Flash</option>
+  <option value="deepseek/deepseek-chat">DeepSeek</option>
+</select>
 
-let user = null;
-let current = new Date();
-let selected = today();
+<button onclick="saveSettings()">Save</button>
+<button onclick="closeSettings()" style="background:#777">Close</button>
 
-/* DATE */
-function today(){
-  return new Date().toISOString().split("T")[0];
-}
-
-/* PROFILE UI */
-function updateProfile(){
-  if(!user) return;
-
-  document.getElementById("profile").innerHTML = `
-    <div style="
-      display:flex;
-      align-items:center;
-      gap:10px;
-      padding:10px;
-      margin-bottom:10px;
-      background:rgba(255,255,255,0.08);
-      border:1px solid rgba(255,255,255,0.15);
-      border-radius:12px;
-    ">
-      <img src="${user.photoURL}" style="
-        width:40px;
-        height:40px;
-        border-radius:50%;
-      "/>
-
-      <div>
-        <div style="font-weight:700;font-size:14px;">
-          ${user.displayName || "No Name"}
-        </div>
-        <div style="font-size:12px;opacity:0.7;">
-          ${user.email}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/* LOGIN */
-window.login = async () => {
-
-  const provider = new GoogleAuthProvider();
-
-  const result = await signInWithPopup(auth, provider);
-
-  user = result.user;
-
-  /* SAVE USER TO FIRESTORE */
-  await setDoc(doc(db, "users", user.uid), {
-    name: user.displayName,
-    email: user.email,
-    photoURL: user.photoURL
-  });
-
-  updateProfile();
-};
-
-onAuthStateChanged(auth,(u)=>{
-  user = u;
-  if(u) updateProfile();
-});
-
-/* SAVE */
-window.save = async () => {
-  if(!user) return alert("Login first");
-
-  await setDoc(doc(db,"memories",user.uid+"_"+selected),{
-    log: document.getElementById("log").value,
-    ref: document.getElementById("ref").value,
-    alt: document.getElementById("alt").value
-  });
-
-  alert("Saved ☁️");
-};
-
-/* LOAD */
-window.load = async (d) => {
-  selected = d;
-  document.getElementById("dateLabel").innerText = d;
-
-  if(!user) return;
-
-  const snap = await getDoc(doc(db,"memories",user.uid+"_"+d));
-
-  if(snap.exists()){
-    const data = snap.data();
-    document.getElementById("log").value = data.log || "";
-    document.getElementById("ref").value = data.ref || "";
-    document.getElementById("alt").value = data.alt || "";
-  }
-};
-
-  /* 🔍 USER SEARCH */
- window.searchUsers = async () => {
-
-  const q =
-  document.getElementById("userSearch")
-  .value
-  .toLowerCase();
-
-  const box =
-  document.getElementById("userResults");
-
-  box.innerHTML = "";
-
-  if(!q) return;
-
-  const snap =
-  await getDocs(collection(db, "users"));
-
-  snap.forEach((docSnap)=>{
-
-    const data = docSnap.data();
-
-    const name =
-    (data.name || "").toLowerCase();
-
-    const email =
-    (data.email || "").toLowerCase();
-
-    if(
-      name.includes(q) ||
-      email.includes(q)
-    ){
-
-      const div =
-      document.createElement("div");
-
-      div.className = "item";
-
-      div.innerHTML = `
-        <div style="
-          display:flex;
-          align-items:center;
-          gap:10px;
-        ">
-
-          <img
-            src="${data.photoURL}"
-            style="
-              width:35px;
-              height:35px;
-              border-radius:50%;
-            "
-          />
-
-          <div>
-            <div style="font-weight:600;">
-              ${data.name}
-            </div>
-
-            <div style="
-              font-size:11px;
-              opacity:0.7;
-            ">
-              ${data.email}
-            </div>
-          </div>
-
-        </div>
-      `;
-
-      box.appendChild(div);
-    }
-
-  });
-
-}; 
-  
-</script>
+</div>
+</div>
 
 <script>
 
-/* CALENDAR */
-let currentDate = new Date();
+let messages = [];
 
-function changeMonth(x){
-  currentDate.setMonth(currentDate.getMonth()+x);
-  render();
+function addMsg(text, type){
+  const div = document.createElement("div");
+  div.className = "msg " + type;
+  div.innerText = text;
+  document.getElementById("messages").appendChild(div);
+  return div;
 }
 
-function render(){
-  let y=currentDate.getFullYear();
-  let m=currentDate.getMonth();
+/* ---------------- STREAMING SEND ---------------- */
 
-  document.getElementById("monthTitle").innerText =
-  currentDate.toLocaleString('default',{month:'long',year:'numeric'});
+async function send(){
 
-  let first=new Date(y,m,1).getDay();
-  let last=new Date(y,m+1,0).getDate();
+const input = document.getElementById("input");
+const text = input.value.trim();
+if(!text) return;
 
-  let c=document.getElementById("cal");
-  c.innerHTML="";
+input.value="";
 
-  for(let i=0;i<first;i++) c.innerHTML+="<div></div>";
+addMsg(text,"user");
 
-  for(let i=1;i<=last;i++){
-    let d=`${y}-${String(m+1).padStart(2,"0")}-${String(i).padStart(2,"0")}`;
+const key = localStorage.getItem("or_key");
+const model = localStorage.getItem("model") || "openai/gpt-4o-mini";
 
-    let div=document.createElement("div");
-    div.className="day";
-    div.innerText=i;
+if(!key){
+  addMsg("Add API key in settings","ai");
+  return;
+}
 
-    div.onclick=()=>window.load(d);
+/* AI message container (we will stream into it) */
+const aiDiv = addMsg("...", "ai");
 
-    c.appendChild(div);
+try{
+
+const res = await fetch("https://openrouter.ai/api/v1/chat/completions",{
+method:"POST",
+headers:{
+"Authorization":"Bearer "+key,
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+model:model,
+stream:true,   // ⭐ IMPORTANT
+messages:[
+{
+role:"user",
+content:text
+}
+]
+})
+});
+
+const reader = res.body.getReader();
+const decoder = new TextDecoder();
+
+let fullText = "";
+
+while(true){
+  const {value, done} = await reader.read();
+  if(done) break;
+
+  const chunk = decoder.decode(value);
+  const lines = chunk.split("\n");
+
+  for(let line of lines){
+    if(line.startsWith("data: ")){
+      const data = line.replace("data: ","");
+
+      if(data === "[DONE]") continue;
+
+      try{
+        const json = JSON.parse(data);
+        const token = json.choices?.[0]?.delta?.content;
+
+        if(token){
+          fullText += token;
+          aiDiv.innerText = fullText;
+        }
+
+      }catch(e){}
+    }
   }
 }
 
-render();
+}catch(e){
+aiDiv.innerText = "Stream error";
+}
+
+}
+
+/* ---------------- SETTINGS ---------------- */
+
+function openSettings(){
+  document.getElementById("modal").style.display="flex";
+}
+
+function closeSettings(){
+  document.getElementById("modal").style.display="none";
+}
+
+function saveSettings(){
+  localStorage.setItem("or_key", document.getElementById("apiKey").value);
+  localStorage.setItem("model", document.getElementById("model").value);
+  closeSettings();
+}
+
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
 
 </script>
 
